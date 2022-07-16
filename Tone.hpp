@@ -1,8 +1,8 @@
 #include <math.h>
 
-// ALL THESE CAN BE CHANGED BUT CHANGING MIDI MIGHT BREAK STUFF
+// ALL THESE CAN BE CHANGED BUT MIGHT BREAK STUFF
 
-//data type for every audio frame
+//data type for every audio frame. should always be an unsigned int type
 typedef uint8_t frame_t;
 
 //define type for misc counters
@@ -69,6 +69,7 @@ struct Pitch{
 };
 
 struct Wave{ //slightly off, but performance > super accurate
+	         //nvm, its super off, TODO: FIX ACCURACY PROBLEMS! B6 is almost 3 semitones sharp
 	Waveform* form; //form of the wave
 	Pitch pitch;    //pitch of the wave
 	counter_t wavepos=0; //position in wave phase
@@ -97,12 +98,13 @@ struct Wave{ //slightly off, but performance > super accurate
 	frame_t getFrame(){
 		frame_t rawFrame;
 
+		frame_t halfmax=WAVEMAX/2;
 		if (form->flips){
 			rawFrame=form->phase[fLUT[wavepos]]>>1;
 			if (onsecondphase) 
-				rawFrame+=128;
+				rawFrame+=halfmax+1;
 			else
-				rawFrame=127-rawFrame;
+				rawFrame=halfmax-rawFrame;
 		} else {
 			rawFrame=form->phase[fLUT[wavepos]];
 		}

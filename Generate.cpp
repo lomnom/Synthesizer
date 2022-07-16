@@ -8,17 +8,13 @@ using std::endl;
 using std::fill_n;
 
 int main(){
-	//define pitch to synthesize
-	Pitch pitch=Pitch(chr2midi('D','4'),440);
-	output << pitch.freq << "freq\n";
-
 	//define waveforms
 	frame_t squareLUT[RESOLUTION]={0};
-	fill_n(squareLUT, RESOLUTION, 255);
+	fill_n(squareLUT, RESOLUTION, WAVEMAX);
 	Waveform square=Waveform(squareLUT,true);
 
 	frame_t sawLUT[RESOLUTION]={0};
-	float frameStep=255.0/RESOLUTION;
+	float frameStep=float(WAVEMAX)/RESOLUTION;
 	counter_t firstHalfSz=RESOLUTION/2;
 	counter_t secHalfSz=RESOLUTION-firstHalfSz;
 	for (uint frame=0;frame<firstHalfSz;frame++){
@@ -32,7 +28,7 @@ int main(){
 	frame_t sineLUT[RESOLUTION]={0};
 	double pi = 2*asin(1.0);
 	for (uint frame=0;frame<RESOLUTION;frame++){
-		sineLUT[frame]=255*sin(pi*(frame/753.0));
+		sineLUT[frame]=WAVEMAX*sin(pi*(frame/753.0));
 	}
 	Waveform sine=Waveform(sineLUT,true);
 
@@ -45,27 +41,50 @@ int main(){
 	}
 	Waveform triangle=Waveform(triangleLUT,true);
 
-	//define tone to synthesize
-	Wave tone=Wave(pitch,&triangle);
+	#ifdef singlepitch
+		//define pitch to synthesize
+		Pitch pitch=Pitch(chr2midi('D','4'),440);
+		output << pitch.freq << " <(freq)\n";
 
-	//display debug information on waveforms
-	for (uint p=0; p<tone.frames; p++){ //print information on wave lookup table
-		output << tone.fLUT[p] << " <(LUT) " << p << " <(index) " 
-		       << (uint)tone.form->phase[tone.fLUT[p]] << " <(value)" << endl;
-	}
-	output << "ENDLUT" << endl;
+		//define tone to synthesize
+		Wave tone=Wave(pitch,&triangle);
+		output << tone.realfreq << " <(realfreq) "
+			   << Pitch(tone.freq).centsFrom(tone.realfreq) << " <(centsaway)";
 
-	//display information on resulting waveform
-	for (uint n=0; n<50; n++)
-		output << tone.wavepos << " <(wave) " 
-		       << tone.onsecondphase << " <(sp) " << (uint)tone.getFrame() << " <(frame) " << endl;
+		//display debug information on waveforms
+		for (uint p=0; p<tone.frames; p++){ //print information on wave lookup table
+			output << tone.fLUT[p] << " <(LUT) " << p << " <(index) " 
+			       << (uint)tone.form->phase[tone.fLUT[p]] << " <(value)" << endl;
+		}
+		output << "ENDLUT" << endl;
 
-	output << "Generating 15 seconds of waveform..." << endl;
+		//display information on resulting waveform
+		for (uint n=0; n<50; n++)
+			output << tone.wavepos << " <(wave) " 
+			       << tone.onsecondphase << " <(sp) " << (uint)tone.getFrame() << " <(frame) " << endl;
 
-	//send wave to stdout
-	for (uint n=0; n<RATE*15;n++){
-		speaker << tone.getFrame();
-	}
+		output << "Generating 15 seconds of waveform..." << endl;
+
+		//send wave to stdout
+		for (uint n=0; n<RATE*15;n++){
+			speaker << tone.getFrame();
+		}
+	#endif
+
+	#define chromatic
+	#ifdef chromatic
+		Waveform* tone=&triangle;
+		midi_t freq=chr2midi('C','2');
+		midi_t end=chr2midi('B','6');
+		for (;freq!=end;freq++){
+			Wave tone=Wave(Pitch(freq,440),&triangle);
+			output << int(freq) << " <(pitch) " << tone.realfreq << " <(realfreq) "
+			       << Pitch(tone.freq).centsFrom(tone.realfreq) << " <(centsaway)" << endl;
+			for (uint n=0; n<RATE/4;n++){
+				speaker << tone.getFrame();
+			}
+		}
+	#endif
 
 	return 0;
 }
