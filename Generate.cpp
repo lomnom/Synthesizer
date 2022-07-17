@@ -7,7 +7,7 @@
 using std::endl;
 using std::fill_n;
 
-int main(){
+int main(int argc, char **argv){
 	//define waveforms
 	frame_t squareLUT[RESOLUTION]={0};
 	fill_n(squareLUT, RESOLUTION, WAVEMAX);
@@ -61,7 +61,8 @@ int main(){
 		//display information on resulting waveform
 		for (uint n=0; n<50; n++)
 			output << tone.wavepos << " <(wave) " 
-			       << tone.onsecondphase << " <(sp) " << (uint)tone.getFrame() << " <(frame) " << endl;
+			       << tone.onsecondphase << " <(sp) " << (uint)tone.getFrame() 
+			       << " <(frame) " << endl;
 
 		output << "Generating 15 seconds of waveform..." << endl;
 
@@ -71,18 +72,40 @@ int main(){
 		}
 	#endif
 
-	#define chromatic
 	#ifdef chromatic
 		Waveform* tone=&triangle;
 		midi_t freq=chr2midi('C','2');
 		midi_t end=chr2midi('B','6');
 		for (;freq!=end;freq++){
 			Wave tone=Wave(Pitch(freq,440),&triangle);
-			output << int(freq) << " <(pitch) " << tone.realfreq << " <(realfreq) "
+			output << int(freq) << " <(pitch) " << tone.freq << " <(freq) " 
+			       << tone.realfreq << " <(realfreq) "
 			       << Pitch(tone.freq).centsFrom(tone.realfreq) << " <(centsaway)" << endl;
 			for (uint n=0; n<RATE/4;n++){
-				speaker << tone.getFrame();
+				frame_t frame=tone.getFrame() >> mf;
+				speaker << frame;
 			}
+		}
+	#endif
+
+	#define chords
+	#ifdef chords
+		Wave* tone[argc-1];
+		for (int n=1;n<argc;n++){
+			tone[n-1]=new Wave(Pitch(chr2midi(argv[n][0],argv[n][1],argv[n][2]),440),&triangle);
+			output << (int)tone[n-1]->pitch.midi << " <(midi) "
+			       << tone[n-1]->freq << " <(freq) ";
+
+			output << tone[n-1]->realfreq << " <(realfreq) "
+			       << Pitch(tone[n-1]->freq).centsFrom(tone[n-1]->realfreq) << " <(centsaway)" << endl;
+		}
+
+		for (uint n=0; n<RATE*15;n++){
+			frame_t frame=0;
+			for (uint t=0;t<argc-1;t++){
+				frame+=tone[t]->getFrame() >> p;
+			}
+			speaker << frame;
 		}
 	#endif
 

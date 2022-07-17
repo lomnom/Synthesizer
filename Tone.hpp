@@ -47,6 +47,12 @@ midi_t chr2midi(char note,char octave){
 	return 21+(12*octave)+midiMap[note-65];
 }
 
+midi_t chr2midi(char note,char octave,char sharpflat){
+	octave-=48;
+	int8_t offset= sharpflat=='n' ? 0 : (sharpflat=='s' ? 1 : -1);
+	return 21+(12*octave)+midiMap[note-65]+offset;
+}
+
 struct Pitch{
 	hertz_t freq; //frequency in hertz
 	midi_t midi; //midi
@@ -119,3 +125,16 @@ struct Wave{ //slightly off, but performance > super accurate
 		return rawFrame;
 	}
 };
+
+
+enum volume: volume_t {
+	f=0,
+	mf=1,
+	mp=2,
+	p=3,
+	pp=4,
+	ppp=5,
+	pppp=6,
+	ppppp=7
+};
+
