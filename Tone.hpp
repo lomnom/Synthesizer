@@ -8,6 +8,9 @@ typedef uint8_t frame_t;
 //define type for misc counters
 typedef uint32_t counter_t; 
 
+//define type for precise counters
+typedef long double pcounter_t;
+
 //define type for midi notes, Do not change this.
 typedef uint8_t midi_t;
 
@@ -23,14 +26,16 @@ typedef uint8_t volume_t;
 //maximum value of every audio frame
 #define WAVEMAX std::numeric_limits<frame_t>::max()
 
-//rate of audio
-#define RATE 11025
+//half of the max, rounded down
+#define HALFMAX WAVEMAX/2
 
-//minumum frequency for a clear non-stretched wave
-#define CLARITYTHRESH 60 
+//rate of audio
+//#define RATE 11025
+#define RATE 22050
 
 //size of buffer for a wave phase. should be RATE/60
-#define RESOLUTION 184 
+//#define RESOLUTION 184 
+#define RESOLUTION 368
 
 struct Waveform{
 	frame_t* phase; //phase buffer
@@ -74,53 +79,35 @@ struct Pitch{
 	}
 };
 
-struct Wave{ //slightly off, but performance > super accurate
-	         //nvm, its super off, TODO: FIX ACCURACY PROBLEMS! B6 is almost 3 semitones sharp
+struct Wave{
 	Waveform* form; //form of the wave
 	Pitch pitch;    //pitch of the wave
-	counter_t wavepos=0; //position in wave phase
-	int16_t* fLUT; //frame position lookup table
-	bool onsecondphase=false; //is it on an even phase?
-	counter_t frames; //number of frames per phase
-	float freq,realfreq; //proper frequency and real frequency
-
-	counter_t phasepos, iteration;
+	pcounter_t lutP=0; //position in wave 
+	pcounter_t framespread; //steps in LUT, frames per phase
+	counter_t frame=0;
+	bool inverted=false;
 
 	Wave(Pitch pitch,Waveform* form): form(form), pitch(pitch){
-		frames=RATE/pitch.freq;
-		realfreq=RATE/frames;
-		freq=pitch.freq;
-		fLUT=new int16_t[frames];
-		float framespread=float(RESOLUTION)/frames;
-		for (counter_t frame=0; frame<frames; frame++){
-			fLUT[frame]=framespread*frame;
-		}
-	}
-
-	~Wave(){
-		delete[] fLUT;
+		framespread=float(RESOLUTION)/((float)RATE/pitch.freq)/(2-form->flips);
 	}
 
 	frame_t getFrame(){
-		frame_t rawFrame;
+		frame_t rawFrame=form->phase[int(lutP)];
 
-		frame_t halfmax=WAVEMAX/2;
 		if (form->flips){
-			rawFrame=form->phase[fLUT[wavepos]]>>1;
-			if (onsecondphase) 
-				rawFrame+=halfmax+1;
+			rawFrame=rawFrame>>1;
+			if (inverted) 
+				rawFrame+=HALFMAX;
 			else
-				rawFrame=halfmax-rawFrame;
-		} else {
-			rawFrame=form->phase[fLUT[wavepos]];
+				rawFrame=HALFMAX-rawFrame;
 		}
-		wavepos+=1;
-
-		if (wavepos==frames){
-			wavepos=0;
-			onsecondphase=!onsecondphase;
+		
+		lutP+=framespread;
+		frame++;
+		if (lutP>RESOLUTION){
+			lutP-=RESOLUTION;
+			inverted=!inverted;
 		}
-
 
 		return rawFrame;
 	}
