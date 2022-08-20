@@ -1,11 +1,13 @@
 #include <iostream>
-#include <algorithm>
 #include "Tone.hpp"
+#include <algorithm>
 #include <math.h>
+#include <random>
 #define output std::cerr
 #define speaker std::cout
 using std::endl;
 using std::fill_n;
+using std::random_device;
 
 int main(int argc, char **argv){
 	//define waveforms
