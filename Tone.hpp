@@ -30,12 +30,14 @@ typedef uint8_t volume_t;
 #define HALFMAX WAVEMAX/2
 
 //rate of audio
-//#define RATE 11025
-#define RATE 22050
+// #define RATE 11025
+// #define RATE 22050
+#define RATE 44100
 
 //size of buffer for a wave phase. should be RATE/60
-//#define RESOLUTION 184 
-#define RESOLUTION 368
+// #define RESOLUTION 184 
+// #define RESOLUTION 368
+#define RESOLUTION 735
 
 struct Waveform{
 	frame_t* phase; //phase buffer
@@ -112,7 +114,6 @@ struct Wave{
 		return rawFrame;
 	}
 };
-
 
 enum volume: volume_t {
 	f=0,
