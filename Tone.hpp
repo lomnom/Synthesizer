@@ -27,7 +27,7 @@ typedef uint8_t volume_t;
 #define WAVEMAX std::numeric_limits<frame_t>::max()
 
 //half of the max, rounded down
-#define HALFMAX WAVEMAX/2
+#define HALFMAX (WAVEMAX/2)
 
 //rate of audio
 // #define RATE 11025

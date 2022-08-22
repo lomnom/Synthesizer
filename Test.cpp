@@ -88,7 +88,7 @@ int main(int argc, char **argv){
 	#ifdef chords
 		Wave* tone[argc-1];
 		for (int n=1;n<argc;n++){
-			tone[n-1]=new Wave(Pitch(chr2midi(argv[n][0],argv[n][1],argv[n][2]),440),&triangle);
+			tone[n-1]=new Wave(Pitch(chr2midi(argv[n][0],argv[n][1],argv[n][2]),440),&sine);
 
 			output << argv[n] << ": " << tone[n-1]->pitch.freq << " <(freq) " << 
 			          (int)tone[n-1]->pitch.midi << " <(midi) " << endl;
