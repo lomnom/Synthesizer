@@ -64,24 +64,13 @@ public:
 	}
 };
 
-#define TPS 100
-#define TICKLEN (1.0/TPS)
-#define TICKFRAMES (RESOLUTION/TPS)
 void synth(){
-	Stopwatch timekeeper;
-	timekeeper.start();
-	double properTime=0;
-
 	while (1){
-		for (counter_t n=0;n<TICKFRAMES;n++){
-			frame_t frame=0;
-			for(auto &[id,tone] : tones){
-				frame+=tone.first.getFrame() >> tone.second;
-			}
-			speaker << frame;
+		frame_t frame=0;
+		for(auto &[id,tone] : tones){
+			frame+=tone.first.getFrame() >> tone.second;
 		}
-		properTime+=TICKLEN*1000;
-		// sleep(0,properTime-timekeeper.time());
+		speaker << frame;
 	}
 }
 
