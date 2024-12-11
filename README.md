@@ -8,7 +8,8 @@ A synthesizer for basic waveforms (triangle, saw, sine) which supports practical
 1. Run `Synthesizer.bash`
 2. Into stdin, create/delete tones with the following syntax, seperated by a newline each
 ```
-	//    Tone: 
+ //    Each tone has a unique id.
+	//    Tone: To create or alter a tone
 	//      - T(wave,freq,vol,id) yes, no space
 	//      - Example: T(sine,220,mf,24)
 	//      - wave:
@@ -21,7 +22,7 @@ A synthesizer for basic waveforms (triangle, saw, sine) which supports practical
 	//        - note: [letter][octave][accidental]
 	//          - D4n D4b D4#
 	//        - freq: uint
-    //          - 220
+ //          - 220
 	//    DelTone:
 	//      - D(id)
 	//      - D(24)
